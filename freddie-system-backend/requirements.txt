@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+openai
+requests
+dotenv
+apscheduler
+passlib
+bcrypt
+PyJWT
+python-multipart
