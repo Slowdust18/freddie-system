@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 1. DATABASE (Your existing setup)
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: freddie_user
+      POSTGRES_PASSWORD: freddie_password
+      POSTGRES_DB: freddie_db
+    ports:
+      - "5433:5432" # External access on 5433, Internal on 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. ADMINER (Your existing GUI)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  # 3. BACKEND API (The new service)
+  api:
+    build: ./freddie-system-backend    # <-- UPDATED: Points to your backend folder
+    container_name: review_api_container
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    # Load secrets (API Keys) from .env
+    env_file:
+      - .env
+    # OVERRIDE the Database URL for internal Docker networking
+    environment:
+      - DATABASE_URL=postgresql://freddie_user:freddie_password@db:5432/freddie_db
+    volumes:
+      - ./freddie-system-backend/app:/code/app  # <-- UPDATED: Maps the correct local app folder
+
+volumes:
+  postgres_data:

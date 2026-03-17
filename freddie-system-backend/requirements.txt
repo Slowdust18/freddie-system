@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+openai
+requests
+dotenv
+apscheduler
+passlib
+bcrypt==3.2.2
+PyJWT
+python-multipart
+pydantic-settings
