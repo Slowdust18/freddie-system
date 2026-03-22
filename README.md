@@ -1,8 +1,5 @@
 # 🤖 Freddie AI: Technical Hand-off & Project Status Report
 
-## 📌 Project Overview
-Freddie is a multi-tenant SaaS platform built to automate Google Business Profile review responses using OpenAI's GPT models. The core engineering is **100% complete**, containerized, and tested.
-
 ## 🚦 Current Status: [STALLED - GOOGLE REVIEW REQUIRED]
 The project is currently in a "Mandatory Administrative Review" phase with Google. 
 * **The Problem:** The API Quota for "Requests per minute" is currently set to **0**.
