@@ -1,77 +1,62 @@
+# 🤖 Freddie AI: Technical Hand-off & Project Status Report
 
+## 📌 Project Overview
+Freddie is a multi-tenant SaaS platform built to automate Google Business Profile review responses using OpenAI's GPT models. The core engineering is **100% complete**, containerized, and tested.
 
-# 🤖 Freddie AI: Full-Stack Setup & Hand-off Guide
-
-## 📋 Project Status: "The 2nd Security Gate"
-* **The Code:** 100% complete and containerized.
-* **The "Write" Access:** Currently hitting **429/403** errors. This is **expected**. 
-* **The Reason:** Google has set the API quota to **0**. We are awaiting manual whitelisting via **Case ID: [INSERT_ID_HERE]**.
-* **The Architecture:** Freddie uses the **Places API** to read reviews (Public) and the **Business Profile API** to reply via **Store Codes** (Private).
-
----
-
-## 🔑 Environment Configuration (`.env`)
-Create a `.env` file in the root directory. These keys allow Freddie to talk to Google and OpenAI.
-
-```env
-# --- AI & DATABASE ---
-OPENAI_API_KEY=sk-xxxx...
-DATABASE_URL=postgresql://postgres:postgres@db:5432/freddie_db
-
-# --- GOOGLE OAUTH CREDENTIALS ---
-GOOGLE_CLIENT_ID=xxxx...apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=xxxx...
-GOOGLE_REFRESH_TOKEN=1//xxxx... # This is the "Master Key"
-
-# --- BUSINESS TARGETING (Kolapasi Anna Nagar) ---
-GOOGLE_ACCOUNT_ID=[INSERT_ACCOUNT_ID_FROM_DASHBOARD_URL]
-GOOGLE_LOCATION_ID=04021770670292508271 # Anna Nagar Store Code
-```
+## 🚦 Current Status: [STALLED - GOOGLE REVIEW REQUIRED]
+The project is currently in a "Mandatory Administrative Review" phase with Google. 
+* **The Problem:** The API Quota for "Requests per minute" is currently set to **0**.
+* **The Reason:** Google restricts "Write" actions (replying to reviews) for "External" and "Unverified" apps until manual business verification is completed.
+* **The Evidence:** Verified via Google Cloud Console > APIs & Services > Quotas.
 
 ---
 
-## 🐳 Docker Management
-| Action | Command |
-| :--- | :--- |
-| **Start/Rebuild** | `docker-compose up --build -d` |
-| **View Live Logs** | `docker-compose logs -f api` |
-| **Run Live Test** | `docker-compose exec api python trigger_live.py` |
-| **Access Database** | Browse to `localhost:8080` (Adminer) |
+## 🏗️ Technical Architecture
+The system is built as a microservice architecture using Docker:
+* **API Service (Python):** Handles review fetching logic, OpenAI integration, and Google API calls.
+* **Database (Postgres):** Stores review logs to prevent duplicate replies and manages tenant data.
+* **Adminer:** Web-based database management UI (available at `http://localhost:8080`).
+
+### **Environment Variables (.env)**
+The system requires the following keys to function:
+* `OPENAI_API_KEY`: The "Brain" for generating responses.
+* `GOOGLE_CLIENT_ID` / `SECRET`: OAuth credentials from the Google Cloud Console.
+* `GOOGLE_REFRESH_TOKEN`: The permanent master key that allows Freddie to act on behalf of the business.
 
 ---
 
-## 🏦 For the Client: The "Bank Vault" Analogy
-If the client asks why we aren't "Live" yet despite having email access, explain it this way:
-* **The Email Login:** This is the **front door key** to the bank. We can walk in and look around (Read reviews).
-* **Freddie (The API):** This is an **Armored Truck** coming to move money automatically.
-* **The Case ID:** Even if you own the bank, the armored truck needs a **special permit** from the central office (Google) to enter the vault. We have applied for the permit and are waiting for the gate to open.
+## ✅ Completed Milestones
+- [x] **Backend Engine:** Logic to fetch reviews via Place ID and Location ID is fully functional.
+- [x] **AI Integration:** Context-aware reply generation using OpenAI is integrated.
+- [x] **Dockerization:** Full environment setup (`docker-compose.yml`) is ready for deployment.
+- [x] **Production Status:** OAuth Consent Screen has been moved from "Testing" to "In Production".
+- [x] **Domain Assets:** `freddiebusiness.com` has been registered for the SaaS front-end.
 
 ---
 
-## 🛠️ Maintenance & Troubleshooting
-### **1. Refreshing the Token**
-The system auto-refreshes using the `GOOGLE_REFRESH_TOKEN`. If you ever get a **401 Unauthorized** that persists:
-1. Go to [OAuth Playground](https://developers.google.com/oauthplayground/).
-2. Use the Client ID/Secret from the `.env`.
-3. Authorize `https://www.googleapis.com/auth/business.manage`.
-4. Exchange the code and update the `GOOGLE_REFRESH_TOKEN` in `.env`.
+## 📝 Remaining "Administrative" Roadmap
+To go live, a Business Administrator must complete these non-coding steps:
 
-### **2. 403 / 429 Errors**
-**Do not change the code.** These errors mean Google's "Gate" is still closed. Once the Case ID is approved, these will automatically turn into `200 OK`.
-
-### **3. Database Reset (To re-run tests)**
-Freddie ignores reviews he has already processed. To force him to re-generate replies for a demo:
-```powershell
-docker-compose exec db psql -U postgres -d freddie_db -c "DELETE FROM review_logs;"
-```
+1.  **Search Console Verification:** Complete the **DNS TXT record** verification for `freddiebusiness.com`. Google will not lift the quota until they verify ownership of this domain.
+2.  **Privacy Policy:** Host a formal privacy policy at `https://freddiebusiness.com/privacy`. This is a hard requirement for Google API approval.
+3.  **Quota Appeal:** Once the domain is verified, go to the Google Cloud Quotas page, select "Requests per minute," and click **Edit Quotas** to request an increase from 0 to 60.
+4.  **Brand Verification:** Submit the app for official Google Brand Verification to remove the "Unverified App" warning for new customers.
 
 ---
 
-## 💻 The Demo Strategy (While Blocked)
-If you need to show progress:
-1. Run `trigger_live.py`. It will fetch reviews and generate AI replies.
-2. It will fail to post to Google (403/429).
-3. Open **Adminer** (`localhost:8080`) and show the `review_logs` table.
-4. **Point to the `ai_reply` column.** This proves the AI is working perfectly and the responses are ready to be pushed the second Google approves the permit.
+## 🚀 How to Run (Post-Approval)
+Once Google lifts the 0 quota:
+1.  **Start Services:** `docker-compose up -d`
+2.  **Trigger AI Processing:** `docker-compose exec api python trigger_live.py`
+3.  **Monitor Output:** `docker-compose logs -f api`
 
-***
+---
+
+## 🆘 Troubleshooting for Successor
+* **Error 429 (Resource Exhausted):** The Quota is still 0. This is a Google permission issue, not a code bug.
+* **Error 401 (Unauthorized):** The Refresh Token has been revoked or the session expired. Re-authenticate via OAuth Playground.
+* **Error 403 (Forbidden):** The Google Account used does not have "Manager" or "Owner" permissions for the specific Location ID.
+
+---
+**Hand-off Date:** March 2026  
+**Developer Note:** The code is production-ready. The remaining hurdles are strictly administrative and tied to Google's manual review process.
